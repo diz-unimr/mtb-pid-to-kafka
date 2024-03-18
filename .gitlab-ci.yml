@@ -1,0 +1,16 @@
+include:
+  - project: "ci/templates"
+    file: "linting-template.yml"
+  - project: "ci/templates"
+    file: "docker/build-image-template.yml"
+  - project: "ci/templates"
+    file: "semantic-release-template.yml"
+  - project: "ci/templates"
+    file: "security/trivy-template.yml"
+
+stages:
+  - lint
+  - build
+  - test
+  - release
+  - badges

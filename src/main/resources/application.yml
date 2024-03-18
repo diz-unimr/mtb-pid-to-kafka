@@ -1,0 +1,34 @@
+spring:
+  jmx:
+    enabled: true
+  kafka:
+    bootstrapServers: ${BOOTSTRAP_SERVERS:localhost:9092}
+    security.protocol: ${SECURITY_PROTOCOL:PLAINTEXT}
+    ssl:
+      trust-store-location: file://${SSL_TRUST_STORE_LOCATION:/opt/kafka-streams-template/ssl/truststore.jks}
+      trust-store-password: ${SSL_TRUST_STORE_PASSWORD}
+      key-store-location: file://${MTB_PID_TO_KAFKA_SSL_KEY_STORE_LOCATION:/opt/kafka-streams-template/ssl/keystore.jks}
+      key-store-password: ${MTB_PID_TO_KAFKA_SSL_KEY_STORE_PASSWORD}
+    producer:
+      value-serializer: de.unimarburg.diz.mtbpidtokafka.configuration.MtbPidNexusOderIdKafkaSerialiser
+      topic: ${MTB_PID_NEXUS_ODER_ID_TOPIC:mtb-pid-nexus-oder-id}
+
+services:
+  mtbSender:
+    get_url: ${URL_MTB_GET:http://test.onkostar/onkostar/remote/createResearchCsvExportByView?view=DIZ_MTB_aktuell&personenstamm=ORBIS&&autoUser=testUser&autoPass=}
+
+management:
+  server:
+    port: 8080
+  endpoints:
+    web:
+      exposure:
+        include: "health, prometheus, info, metric"
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.kafka.config: info
+    de.unimarburg.diz.mtb-pid-to-kafka: debug
