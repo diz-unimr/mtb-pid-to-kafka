@@ -21,39 +21,64 @@
 
 package de.unimarburg.diz.mtbpidtokafka;
 
-import com.fasterxml.jackson.core.JacksonException;
-import de.unimarburg.diz.mtbpidtokafka.model.MtbPidNexusOderId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.retry.RetryCallback;
-import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
-import org.springframework.retry.listener.RetryListenerSupport;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.retry.policy.SimpleRetryPolicy;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.client.RestTemplate;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
-import java.util.Objects;
-import org.apache.http.client.utils.URIBuilder;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 @Component
 public class MtbPidNexusOderIdMapperClient {
     private static final Logger log = LoggerFactory.getLogger(MtbPidNexusOderIdMapperClient.class);
 
-    public static RetryTemplate defaultTemplate() {
+    private final String apiUrl;
+    private final String username;
+    private final String password;
+
+    @Autowired
+    public MtbPidNexusOderIdMapperClient(@Value("${services.mtbSender.get_url}") String apiUrl,
+                                         @Value("${services.mtbSender.mtb_username}") String username,
+                                         @Value("${services.mtbSender.mtb_password}") String password){
+        this.apiUrl= apiUrl;
+        this.username = username;
+        this.password = password;
+    }
+
+    public  String [] mtbPidsExtractor() {
+        log.debug("Starting");
+        String authHeaderValue = "Basic " + java.util.Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Accept", MediaType.TEXT_PLAIN_VALUE);
+        headers.set("Authorization", authHeaderValue);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        // Create GET request to the API
+        ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
+        if (response.getStatusCode() == HttpStatus.OK) {
+            // Parse the CSV response to extract IDs
+            String[] lines = response.getBody().split("\\r?\\n");
+            String[] ids = new String[lines.length - 1]; // First line is header
+            for (int i = 1; i < lines.length; i++) {
+                String[] columns = lines[i].split(",");
+                ids[i - 1] = columns[0]; // Assuming ID is the first column
+            }
+            System.out.println(ids.toString());
+            return ids;
+        } else {
+            System.err.println("Failed to fetch CSV file. Status code: " + response.getStatusCode().value());
+            return new String[0];
+        }
+    }
+
+    public static RetryTemplate defaultTemplate(){
         RetryTemplate retryTemplate = new RetryTemplate();
         ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
         backOffPolicy.setInitialInterval(5000);
@@ -63,14 +88,6 @@ public class MtbPidNexusOderIdMapperClient {
         retryableExceptions.put(RestClientException.class,true);
         RetryPolicy retryPolicy = new SimpleRetryPolicy(3, retryableExceptions);
         retryTemplate.setRetryPolicy(retryPolicy);
-        retryTemplate.registerListener(new RetryListenerSupport() {
-            @Override
-            public <T, E extends Throwable> void onError(RetryContext context,
-                                                         RetryCallback<T, E> callback, Throwable throwable) {
-                log.warn("HTTP Error occurred: {}. Retrying {}", throwable.getMessage(),
-                        context.getRetryCount());
-            }
-        });
         return retryTemplate;
     }
 }

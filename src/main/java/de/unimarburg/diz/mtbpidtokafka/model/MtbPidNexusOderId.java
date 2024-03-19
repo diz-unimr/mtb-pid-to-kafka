@@ -35,6 +35,5 @@ public class MtbPidNexusOderId {
 
     @JsonProperty
     @JsonSetter(nulls = Nulls.AS_EMPTY)
-    private Object oderId;
-
+    private String oderId;
 }

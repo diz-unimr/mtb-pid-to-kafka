@@ -15,7 +15,10 @@ spring:
 
 services:
   mtbSender:
-    get_url: ${URL_MTB_GET:http://test.onkostar/onkostar/remote/createResearchCsvExportByView?view=DIZ_MTB_aktuell&personenstamm=ORBIS&&autoUser=testUser&autoPass=}
+    #get_url: ${URL_MTB_GET:http://test.onkostar/onkostar/remote/createResearchCsvExportByView?view=DIZ_MTB_aktuell&personenstamm=ORBIS&&autoUser=testUser&autoPass=}
+    get_url: ${URL_MTB_GET:"http://127.0.0.1:5000/get_csv"}
+    mtb_username: ${MTB_USERNAME:"username"}
+    mtb_password: ${MTB_PASSWORD:"password"}
 
 management:
   server:
