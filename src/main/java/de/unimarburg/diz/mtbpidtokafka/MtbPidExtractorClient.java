@@ -30,30 +30,38 @@ import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.web.client.RestTemplate;
+
+import java.sql.Array;
 import java.util.HashMap;
+import java.util.Objects;
 
 @Component
-public class MtbPidNexusOderIdMapperClient {
-    private static final Logger log = LoggerFactory.getLogger(MtbPidNexusOderIdMapperClient.class);
+public class MtbPidExtractorClient {
+    private static final Logger log = LoggerFactory.getLogger(MtbPidExtractorClient.class);
 
     private final String apiUrl;
     private final String username;
     private final String password;
 
     @Autowired
-    public MtbPidNexusOderIdMapperClient(@Value("${services.mtbSender.get_url}") String apiUrl,
-                                         @Value("${services.mtbSender.mtb_username}") String username,
-                                         @Value("${services.mtbSender.mtb_password}") String password){
+    public MtbPidExtractorClient(@Value("${services.mtbSender.get-url}") String apiUrl,
+                                 @Value("${services.mtbSender.mtb-username}") String username,
+                                 @Value("${services.mtbSender.mtb-password}") String password){
         this.apiUrl= apiUrl;
         this.username = username;
         this.password = password;
     }
+    private static ResponseEntity<String> responseEntity;
+
+    private final RetryTemplate retryTemplate = defaultTemplate();
 
     public  String [] mtbPidsExtractor() {
         log.debug("Starting");
+        String [] pids = new String[0];
         String authHeaderValue = "Basic " + java.util.Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -61,21 +69,22 @@ public class MtbPidNexusOderIdMapperClient {
         headers.set("Authorization", authHeaderValue);
         HttpEntity<String> entity = new HttpEntity<>(headers);
         // Create GET request to the API
-        ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
-        if (response.getStatusCode() == HttpStatus.OK) {
+        try {
+            responseEntity = retryTemplate.execute(ctx -> restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class));
+            if (responseEntity.getStatusCode() == HttpStatus.OK) {
+                log.debug("API request succeeded");
             // Parse the CSV response to extract IDs
-            String[] lines = response.getBody().split("\\r?\\n");
-            String[] ids = new String[lines.length - 1]; // First line is header
-            for (int i = 1; i < lines.length; i++) {
-                String[] columns = lines[i].split(",");
-                ids[i - 1] = columns[0]; // Assuming ID is the first column
+                String[] lines = Objects.requireNonNull(responseEntity.getBody()).split("\\r?\\n");
+                pids = new String[lines.length - 1]; // First line is header
+                for (int i = 1; i < lines.length; i++) {
+                    String[] columns = lines[i].split(",");
+                    pids[i - 1] = columns[0]; // Assuming ID is the first column
+                }
             }
-            System.out.println(ids.toString());
-            return ids;
-        } else {
-            System.err.println("Failed to fetch CSV file. Status code: " + response.getStatusCode().value());
-            return new String[0];
+        } catch (RestClientException e){
+            log.error("API request unsuccessful due to restclientexception");
         }
+    return pids;
     }
 
     public static RetryTemplate defaultTemplate(){

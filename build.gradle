@@ -68,6 +68,8 @@ dependencies {
 	// mapper
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+	implementation 'com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11'
+
 	// unit tests
 	testImplementation 'org.springframework.cloud:spring-cloud-stream'
 	testImplementation 'org.apache.kafka:kafka-streams-test-utils:3.4.0'
@@ -88,6 +90,7 @@ dependencies {
 	intTestImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
 	intTestImplementation 'org.awaitility:awaitility:4.2.0'
 	intTestImplementation 'org.assertj:assertj-core:3.17.2'
+
 
 }
 

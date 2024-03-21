@@ -21,6 +21,7 @@
 
 package de.unimarburg.diz.mtbpidtokafka;
 
+import de.unimarburg.diz.mtbpidtokafka.model.MtbPidNexusOderId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -29,56 +30,39 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.concurrent.ExecutionException;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 
 
 @Service
-@EnableKafka
 @Configuration
-public class MtbPidNexusIdProducer {
-    private static final Logger log = LoggerFactory.getLogger(MtbPidNexusIdProducer.class);
-    private final MtbPidNexusOderIdMapperClient mtbPidNexusOderIdMapperClient;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+@EnableKafka
+public class MtbPidNexusIdKafkaProducer {
+    private static final Logger log = LoggerFactory.getLogger(MtbPidNexusIdKafkaProducer.class);
+    private final MtbPidExtractorClient mtbPidExtractorClient;
+    private final KafkaTemplate<String, MtbPidNexusOderId> kafkaTemplate;
 
+    private final MtbPidNexusIdMapper mtbPidNexusIdMapper;
     @Value("${spring.kafka.producer.topic}")
     private final String mtb = "mtb-pid-nexus-oder-id";
-
-
     @Autowired
-    public MtbPidNexusIdProducer(MtbPidNexusOderIdMapperClient mtbPidNexusOderIdMapperClient, KafkaTemplate<String, String> kafkaTemplate){
-        this.mtbPidNexusOderIdMapperClient = mtbPidNexusOderIdMapperClient;
+    public MtbPidNexusIdKafkaProducer(MtbPidExtractorClient mtbPidExtractorClient, MtbPidNexusIdMapper mtbPidNexusIdMapper, KafkaTemplate<String, MtbPidNexusOderId> kafkaTemplate) {
+        this.mtbPidExtractorClient = mtbPidExtractorClient;
+        this.mtbPidNexusIdMapper = mtbPidNexusIdMapper;
         this.kafkaTemplate = kafkaTemplate;
         kafkaTemplate.setDefaultTopic(mtb);
-
     }
-
-    public boolean sendToKafka(String key, String data)
-            throws InterruptedException, ExecutionException {
-        var result = kafkaTemplate.sendDefault(key, data);
-
-        if (result.get() != null) {
-            log.debug("stored msg : " + data);
-        } else {
-            log.error("failed! send data: " + data);
-            return false;
-        }
-
-        return true;
+    public void sendToKafka() throws SQLException {
+        String [] pids = mtbPidExtractorClient.mtbPidsExtractor();
+        ResultSet resultSet = mtbPidNexusIdMapper.mapMtbPidtoOderId(pids);
+        while (resultSet.next()){
+        MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
+        String pid = resultSet.getString("pid");
+        String oder_id = resultSet.getString("oder_id");
+        mtbPidNexusOderId.setPid(pid);
+        kafkaTemplate.sendDefault(oder_id,mtbPidNexusOderId);
     }
-
-    protected boolean processMtbFile()
-            throws InterruptedException, ExecutionException{
-        try {
-
-            final String key = "test";
-
-            sendToKafka(key, "123");
-        } catch (InterruptedException | ExecutionException e) {
-            // Handle serialization errors
-            log.error("failed send data to kafka", e);
-            throw e;
-        }
-        return true;
     }
 }
