@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.RetryListener;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -75,10 +78,10 @@ public class MtbPidExtractorClient {
                 log.debug("API request succeeded");
             // Parse the CSV response to extract IDs
                 String[] lines = Objects.requireNonNull(responseEntity.getBody()).split("\\r?\\n");
-                pids = new String[lines.length - 1]; // First line is header
+                pids = new String[lines.length - 1];
                 for (int i = 1; i < lines.length; i++) {
                     String[] columns = lines[i].split(",");
-                    pids[i - 1] = columns[0]; // Assuming ID is the first column
+                    pids[i - 1] = columns[0];
                 }
             }
         } catch (RestClientException e){
@@ -97,6 +100,14 @@ public class MtbPidExtractorClient {
         retryableExceptions.put(RestClientException.class,true);
         RetryPolicy retryPolicy = new SimpleRetryPolicy(3, retryableExceptions);
         retryTemplate.setRetryPolicy(retryPolicy);
+        retryTemplate.registerListener(new RetryListener() {
+            @Override
+            public <T, E extends Throwable> void onError(RetryContext context,
+                                                         RetryCallback<T, E> callback, Throwable throwable) {
+                log.warn("HTTP Error occurred: {}. Retrying {}", throwable.getMessage(),
+                        context.getRetryCount());
+            }
+        });
         return retryTemplate;
     }
 }
