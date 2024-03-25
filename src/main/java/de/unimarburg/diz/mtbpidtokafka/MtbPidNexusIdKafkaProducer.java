@@ -22,18 +22,17 @@
 package de.unimarburg.diz.mtbpidtokafka;
 
 import de.unimarburg.diz.mtbpidtokafka.model.MtbPidNexusOderId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLTimeoutException;
 
 
 @Service
@@ -47,6 +46,7 @@ public class MtbPidNexusIdKafkaProducer {
     private final MtbPidNexusIdMapper mtbPidNexusIdMapper;
     @Value("${spring.kafka.producer.topic}")
     private final String mtb = "mtb-pid-nexus-oder-id";
+
     @Autowired
     public MtbPidNexusIdKafkaProducer(MtbPidExtractorClient mtbPidExtractorClient, MtbPidNexusIdMapper mtbPidNexusIdMapper, KafkaTemplate<String, MtbPidNexusOderId> kafkaTemplate) {
         this.mtbPidExtractorClient = mtbPidExtractorClient;
@@ -54,15 +54,20 @@ public class MtbPidNexusIdKafkaProducer {
         this.kafkaTemplate = kafkaTemplate;
         kafkaTemplate.setDefaultTopic(mtb);
     }
+
     public void sendToKafka() throws SQLException {
-        String [] pids = mtbPidExtractorClient.mtbPidsExtractor();
+
+        String[] pids = mtbPidExtractorClient.mtbPidsExtractor();
+        if (pids.length == 0) {
+            return;
+        }
         ResultSet resultSet = mtbPidNexusIdMapper.mapMtbPidtoOderId(pids);
-        while (resultSet.next()){
-        MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
-        String pid = resultSet.getString("pid");
-        String oder_id = resultSet.getString("oder_id");
-        mtbPidNexusOderId.setPid(pid);
-        kafkaTemplate.sendDefault(oder_id,mtbPidNexusOderId);
-    }
+        while (resultSet.next()) {
+            MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
+            String pid = resultSet.getString("pid");
+            String oder_id = resultSet.getString("oder_id");
+            mtbPidNexusOderId.setPid(pid);
+            kafkaTemplate.sendDefault(oder_id, mtbPidNexusOderId);
+        }
     }
 }
