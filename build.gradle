@@ -52,7 +52,7 @@ dependencies {
 	// spring cloud stream kafka
 	implementation 'org.springframework.kafka:spring-kafka'
 
-	implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+	implementation 'org.apache.httpcomponents:httpclient:4.5.14'
 
 	//implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka-streams'
 	//implementation ('org.springframework.cloud:spring-cloud-stream')
@@ -88,7 +88,7 @@ dependencies {
 	}
 	intTestImplementation "org.testcontainers:kafka:$testContainersVersion"
 	intTestImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
-	intTestImplementation 'org.awaitility:awaitility:4.2.0'
+	intTestImplementation 'org.awaitility:awaitility:4.2.1'
 	intTestImplementation 'org.assertj:assertj-core:3.17.2'
 
 
