@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
+
+import static de.unimarburg.diz.mtbpidtokafka.utils.StringCreatorFromArray.createInStringPidsArray;
+
 @Component
 public class MtbPidNexusIdMapper {
     private static final Logger log = LoggerFactory.getLogger(MtbPidExtractorClient.class);
@@ -45,22 +48,15 @@ public class MtbPidNexusIdMapper {
 
 
     public String createCustomSql(String[] pids) {
-        try {
-            if (pids.length > 0) {
-                StringBuilder sql = new StringBuilder("SELECT * FROM " + schema_table + " WHERE pid IN (");
-                for (int i = 0; i < pids.length; i++) {
-                    sql.append("'").append(pids[i]).append("'");
-                    if (i < pids.length - 1) {
-                        sql.append(", ");
-                    }
-                }
-                sql.append(")");
-                return sql.toString();
-            }
-
-        } catch (NullPointerException e) {
-            log.debug("Array with pid is empty");
-        }
-    return null;
+        return "select\n" +
+                "    medorder.OrderNumber as oder_id,\n" +
+                "    life_number.Number as pid\n" +
+                "from dbo.LifeNumber as life_number\n" +
+                "         inner join\n" +
+                "     dbo.medcase as medcase on life_number.Patient = medcase.Patient\n" +
+                "         inner join  dbo.MedOrder as medorder on medcase.GUID = medorder.MedCase\n" +
+                "         inner join dbo.Client as client on client.GUID = MedCase.MedCaseClient and client.Name = 'XXX'\n" +
+                "where life_number.Number in " + createInStringPidsArray(pids);
     }
+
 }

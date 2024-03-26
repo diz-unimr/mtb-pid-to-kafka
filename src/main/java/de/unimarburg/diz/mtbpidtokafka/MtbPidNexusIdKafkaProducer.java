@@ -61,13 +61,14 @@ public class MtbPidNexusIdKafkaProducer {
         if (pids.length == 0) {
             return;
         }
-        ResultSet resultSet = mtbPidNexusIdMapper.mapMtbPidtoOderId(pids);
-        while (resultSet.next()) {
-            MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
-            String pid = resultSet.getString("pid");
-            String oder_id = resultSet.getString("oder_id");
-            mtbPidNexusOderId.setPid(pid);
-            kafkaTemplate.sendDefault(oder_id, mtbPidNexusOderId);
+        try (ResultSet resultSet = mtbPidNexusIdMapper.mapMtbPidtoOderId(pids)) {
+            while (resultSet.next()) {
+                MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
+                String pid = resultSet.getString("pid");
+                String oder_id = resultSet.getString("oder_id");
+                mtbPidNexusOderId.setPid(pid);
+                kafkaTemplate.sendDefault(oder_id, mtbPidNexusOderId);
+            }
         }
     }
 }
