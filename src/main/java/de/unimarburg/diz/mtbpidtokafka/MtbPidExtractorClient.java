@@ -1,16 +1,17 @@
 /*
- This file is part of KAFKA-TO-BWHC.
+ This file is part of MTB-ID-TO-KAFKA.
 
- KAFKA-TO-BWHC - Read MTB-file from a Apache Kafka topic > send MTB-file via REST to DIZ Marburg  BWHC Node >
- produce the HTTP Response to a new Apache Kafka topic
- Copyright (C) 2023  Datenintegrationszentrum Philipps-Universität Marburg
+MTB-ID-TO-KAFKA - Get a CSV als Plane Text from MTB (Onkostar), extract the PIDs from the csv file, search all the oder_ids for each PID in NexusDB and produce the info as JSON in a Kafka
+topic.
 
- KAFKA-TO-BWHC is free software: you can redistribute it and/or modify
+Copyright (C) 2024  Datenintegrationszentrum Philipps-Universität Marburg
+
+MTB-ID-TO-KAFKA  is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as
  published by the Free Software Foundation, either version 3 of the
  License, or (at your option) any later version.
 
- KAFKA-TO-BWHC is distributed in the hope that it will be useful,
+MTB-ID-TO-KAFKA is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Affero General Public License for more details.
