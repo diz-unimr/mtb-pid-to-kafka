@@ -11,7 +11,7 @@ RUN gradle build -x integrationTest --info && \
     java -Djarmode=layertools -jar build/libs/*.jar extract
 
 FROM gcr.io/distroless/java17:nonroot
-WORKDIR /opt/kafka-to-bwhc
+WORKDIR /opt/mtb-id-to-kafka
 COPY --from=build /home/gradle/src/dependencies/ ./
 COPY --from=build /home/gradle/src/spring-boot-loader/ ./
 COPY --from=build /home/gradle/src/application/ ./
@@ -35,4 +35,4 @@ LABEL org.opencontainers.image.created=${BUILD_TIME} \
     org.opencontainers.image.revision=${GIT_REF} \
     org.opencontainers.image.vendor="diz.uni-marburg.de" \
     org.opencontainers.image.title="mtb-pid-to-kafka" \
-    org.opencontainers.image.description="Kafka Producer: to receive the PIDs from Onkostar, find the Journal Number for each PIDs in Nexus DB and produce these information in a separate kafa-topic"
+    org.opencontainers.image.description="Kafka Producer: to receive the PIDs from Onkostar, find the oder name for each PIDs in Nexus DB and produce these information in a separate kafa-topic"
