@@ -37,15 +37,16 @@ public class MtbPidNexusIdMapper {
     private final String jdbcUrl;
     private final String username;
     private final String password;
-    private final String schema_table;
+
+    private final String nexusdb_client_name;
 
     @Autowired
     public MtbPidNexusIdMapper(@Value("${services.mtbSender.nexusdb-url}") String jdbcUrl, @Value("${services.mtbSender.nexusdb-username}") String username,
-                               @Value("${services.mtbSender.nexusdb-password}") String password, @Value("${services.mtbSender.nexusdb-schema-table}") String schema_table) {
+                               @Value("${services.mtbSender.nexusdb-password}") String password, @Value("${services.mtbSender.nexusdb-client-name}") String nexusdb_client_name) {
         this.jdbcUrl = jdbcUrl;
         this.username = username;
         this.password = password;
-        this.schema_table = schema_table;
+        this.nexusdb_client_name = nexusdb_client_name;
     }
 
     private static ResultSet resultSet;
@@ -76,8 +77,8 @@ public class MtbPidNexusIdMapper {
                 "         inner join\n" +
                 "     dbo.medcase as medcase on life_number.Patient = medcase.Patient\n" +
                 "         inner join  dbo.MedOrder as medorder on medcase.GUID = medorder.MedCase\n" +
-                "         inner join dbo.Client as client on client.GUID = MedCase.MedCaseClient and client.Name = 'XXX'\n" +
-                "where life_number.Number in " + createInStringPidsArray(pids);
+                "         inner join dbo.Client as client on client.GUID = MedCase.MedCaseClient and client.Name = \n" +
+                nexusdb_client_name + " where life_number.Number in " + createInStringPidsArray(pids);
     }
 
 }

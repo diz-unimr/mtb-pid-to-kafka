@@ -23,6 +23,7 @@ services:
     nexusdb-username: ${NEXUSDB_USERNAME:sa}
     nexusdb-password: ${NEXUSDB_PASSWORD:Strong@Password}
     nexusdb-schema-table: ${NEXUSDB_SCHEMA_TABLE:dbo.oder}
+    nexusdb-client-name: ${NEXUSDB_CLIENT_NAME:XXXX}
 management:
   server:
     port: 8080
@@ -33,7 +34,6 @@ management:
   endpoint:
     health:
       show-details: always
-
 logging:
   level:
     org.springframework.kafka.config: info
