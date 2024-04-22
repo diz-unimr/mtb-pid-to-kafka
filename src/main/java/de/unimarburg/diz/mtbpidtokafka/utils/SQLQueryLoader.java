@@ -19,18 +19,32 @@ MTB-ID-TO-KAFKA is distributed in the hope that it will be useful,
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
-package de.unimarburg.diz.mtbpidtokafka.model;
+package de.unimarburg.diz.mtbpidtokafka.utils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.Nulls;
-import lombok.Data;
+import de.unimarburg.diz.mtbpidtokafka.MtbPidExtractorClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
 
-@Data
-public class MtbPidNexusOderId {
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Map;
 
-    @JsonProperty
-    @JsonSetter(nulls = Nulls.AS_EMPTY)
-    private String pid;
-
+public class SQLQueryLoader {
+    private static final String YAML_FILE = "sql/sql_queries.yml";
+    private static final Logger log = LoggerFactory.getLogger(MtbPidExtractorClient.class);
+    public static Map<String, String> loadQueries() {
+        Yaml yaml = new Yaml();
+        try {
+            File initialFile = new File(YAML_FILE);
+            InputStream inputStream= new FileInputStream(initialFile);
+            log.info(inputStream.toString());
+            return yaml.load(inputStream);
+        } catch (Exception e){
+           log.error(e.getMessage());
+           log.info("Error while reading file");
+        }
+        return null;
+    }
 }

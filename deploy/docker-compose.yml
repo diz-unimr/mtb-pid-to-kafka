@@ -1,6 +1,8 @@
 version: '3.5'
 services:
   mtb-id-to-kafka:
-    container_name: dnpm
-    image: ghcr.io/diz-unimr/mtb-pid-to-kafka:1.0.4
+    container_name: dnpm-test
+    image: ghcr.io/diz-unimr/mtb-pid-to-kafka:${VERSION:latest}
     env_file: sample.env # Change it if required
+    volumes:
+      - ./sql:/opt/mtb-pid-to-kafka/sql/

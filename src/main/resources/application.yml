@@ -15,15 +15,13 @@ spring:
 
 services:
   mtbSender:
-    #get_url: ${URL_MTB_GET:http://test.onkostar/onkostar/remote/createResearchCsvExportByView?view=DIZ_MTB_aktuell&personenstamm=ORBIS&&autoUser=testUser&autoPass=}
     get-url: ${URL_MTB_GET:http://127.0.0.1:5000/get_csv}
     mtb-username: ${MTB_USERNAME:username}
     mtb-password: ${MTB_PASSWORD:password}
     nexusdb-url: ${NEXUSDB_URL:jdbc:sqlserver://localhost:1433;databaseName=dnpm;encrypt=false}
     nexusdb-username: ${NEXUSDB_USERNAME:sa}
     nexusdb-password: ${NEXUSDB_PASSWORD:Strong@Password}
-    nexusdb-schema-table: ${NEXUSDB_SCHEMA_TABLE:dbo.oder}
-    nexusdb-client-name: ${NEXUSDB_CLIENT_NAME:XXXX}
+
 management:
   server:
     port: 8080

@@ -1,12 +1,12 @@
 /*
- This file is part of MTB-ID-TO-KAFKA.
+ This file is part of MTB-PID-TO-KAFKA.
 
-MTB-ID-TO-KAFKA - Get a CSV als Plane Text from MTB (Onkostar), extract the PIDs from the csv file, search all the oder_ids for each PID in NexusDB and produce the info as JSON in a Kafka
+MTB-PID-TO-KAFKA - Get a CSV als Plane Text from MTB (Onkostar), extract the PIDs from the csv file, search all the oder_ids for each PID in NexusDB and produce the info as JSON in a Kafka
 topic.
 
 Copyright (C) 2024  Datenintegrationszentrum Philipps-Universität Marburg
 
-MTB-ID-TO-KAFKA  is free software: you can redistribute it and/or modify
+MTB-PID-TO-KAFKA  is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as
  published by the Free Software Foundation, either version 3 of the
  License, or (at your option) any later version.
@@ -59,16 +59,22 @@ public class MtbPidNexusIdKafkaProducer {
     public void sendToKafka() throws SQLException {
         String[] pids = mtbPidExtractorClient.mtbPidsExtractor();
         if (pids.length == 0) {
+            log.info("No PIDs found");
             return;
         }
         try (ResultSet resultSet = mtbPidNexusIdMapper.mapMtbPidtoOderId(pids)) {
-            while (resultSet.next()) {
-                MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
-                String pid = resultSet.getString("pid");
-                String oder_id = resultSet.getString("oder_id");
-                mtbPidNexusOderId.setPid(pid);
-                kafkaTemplate.sendDefault(oder_id, mtbPidNexusOderId);
+            if (resultSet == null) {
+                log.info("Resultset Size is null");
+            return;
+            }
+                while (resultSet.next()) {
+                    MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
+                    String pid = resultSet.getString("pid");
+                    String oder_id = resultSet.getString("oder_id");
+                    mtbPidNexusOderId.setPid(pid);
+                    kafkaTemplate.sendDefault(oder_id, mtbPidNexusOderId);
+                }
             }
         }
-    }
 }
+
