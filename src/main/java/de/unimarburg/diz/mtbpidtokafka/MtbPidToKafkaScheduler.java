@@ -21,7 +21,10 @@ MTB-ID-TO-KAFKA is distributed in the hope that it will be useful,
  */
 package de.unimarburg.diz.mtbpidtokafka;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -31,6 +34,7 @@ import java.sql.SQLException;
 @EnableScheduling
 @Component
 public class MtbPidToKafkaScheduler {
+    private static final Logger log = LoggerFactory.getLogger(MtbPidExtractorClient.class);
     private final MtbPidNexusIdKafkaProducer mtbPidNexusIdKafkaProducer;
 
     @Autowired
@@ -38,8 +42,9 @@ public class MtbPidToKafkaScheduler {
         this.mtbPidNexusIdKafkaProducer = mtbPidNexusIdKafkaProducer;
     }
 
-    @Scheduled(fixedRate = 10000)// Repeate the process in every 10 sec
+    @Scheduled(fixedRateString = "${services.mtbSender.mtb-fetch-metrics}")// Repeate the process in defined seconds
     public void launchTaskMtbPidToKafka() throws SQLException {
+        log.info("mtb-pid-to-kafka process restarting ....");
         mtbPidNexusIdKafkaProducer.sendToKafka();
     }
 }

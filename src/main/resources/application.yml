@@ -18,9 +18,11 @@ services:
     get-url: ${URL_MTB_GET:http://127.0.0.1:5000/get_csv}
     mtb-username: ${MTB_USERNAME:username}
     mtb-password: ${MTB_PASSWORD:password}
+    mtb-fetch-metrics: ${MTB_FETCH_METRICS:10000}
     nexusdb-url: ${NEXUSDB_URL:jdbc:sqlserver://localhost:1433;databaseName=dnpm;encrypt=false}
     nexusdb-username: ${NEXUSDB_USERNAME:sa}
     nexusdb-password: ${NEXUSDB_PASSWORD:Strong@Password}
+
 
 management:
   server:
