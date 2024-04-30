@@ -28,10 +28,45 @@ public class StringCreatorFromArray {
         for (int i = 0; i < pids.length; i++) {
             sql.append("?");
             if (i < pids.length - 1) {
-                sql.append(", ");
+                sql.append(",");
             }
         }
         sql.append(");");
         return sql.toString();
     }
+
+    public static String createStringPidsForSql(String pid) {
+        // Check the double cote and remove it
+        StringBuilder sqlPid = new StringBuilder();
+        if (pid.contains("\"")) {
+            pid = pid.replaceAll("\"", "");
+            return sqlPid.append("'").append(pid).append("'").toString();
+        } else {
+            return sqlPid.append("'").append(pid).append("'").toString();
+        }
+    }
+
+    public static String createInStringPidsArrayOld(String[] pids) {
+        StringBuilder sql = new StringBuilder(" (");
+        for (int i = 0; i < pids.length; i++) {
+            if (pids[i].contains("\"")) {
+                String currentPid = pids[i].replaceAll("\"", "");
+                sql.append("'").append(currentPid).append("'");
+                if (i < pids.length - 1) {
+                    sql.append(", ");
+                }
+            } else {
+                sql.append("'").append(pids[i]).append("'");
+                if (i < pids.length - 1) {
+                    sql.append(", ");
+                }
+
+            }
+        }
+            sql.append(")");
+            return sql.toString();
+
+        }
+
+
 }

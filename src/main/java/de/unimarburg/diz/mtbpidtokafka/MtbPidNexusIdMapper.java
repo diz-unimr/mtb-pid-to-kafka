@@ -32,7 +32,7 @@ import java.sql.*;
 import java.util.Arrays;
 import java.util.Map;
 
-import static de.unimarburg.diz.mtbpidtokafka.utils.StringCreatorFromArray.createInStringPidsArray;
+import static de.unimarburg.diz.mtbpidtokafka.utils.StringCreatorFromArray.*;
 
 @Component
 public class MtbPidNexusIdMapper {
@@ -40,13 +40,15 @@ public class MtbPidNexusIdMapper {
     private final String jdbcUrl;
     private final String username;
     private final String password;
+    private final String sqlStatement;
 
     @Autowired
     public MtbPidNexusIdMapper(@Value("${services.mtbSender.nexusdb-url}") String jdbcUrl, @Value("${services.mtbSender.nexusdb-username}") String username,
-                               @Value("${services.mtbSender.nexusdb-password}") String password){
+                               @Value("${services.mtbSender.nexusdb-password}") String password, @Value("${services.mtbSender.sql-statement}") String sqlStatement){
         this.jdbcUrl = jdbcUrl;
         this.username = username;
         this.password = password;
+        this.sqlStatement = sqlStatement;
     }
 
     private static ResultSet resultSet;
@@ -54,26 +56,15 @@ public class MtbPidNexusIdMapper {
         try {
             // Establishing a connection to the database
             Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
-            Map<String, String> queries = SQLQueryLoader.loadQueries();
-            assert queries != null;
-            String selectOrderNumberByPid = queries.get("selectOrderNumberByPid");
-            // Create a new sql statement
-            String customsql = createInStringPidsArray(pids,selectOrderNumberByPid);
-            PreparedStatement preparedStatement = conn.prepareStatement(customsql);
-            // Set parameters
-            for (int i = 0; i < pids.length ; i++) {
-                log.info(pids[i]);
-                preparedStatement.setString(i + 1, pids[i]);
-            }
-            resultSet = preparedStatement.executeQuery();
+            Statement stmt = conn.createStatement();
+            String sql_stat = sqlStatement + createInStringPidsArrayOld(pids);
+            resultSet = stmt.executeQuery(sql_stat);
+            //resultSet = preparedStatement.executeQuery();
             return resultSet;
-
         } catch (SQLException | NullPointerException e) {
             log.error(e.getMessage());
         }
-
         return resultSet;
     }
-
 
 }

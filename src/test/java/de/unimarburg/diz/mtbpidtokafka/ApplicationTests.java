@@ -24,6 +24,7 @@ package de.unimarburg.diz.mtbpidtokafka;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static de.unimarburg.diz.mtbpidtokafka.utils.StringCreatorFromArray.createStringPidsForSql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.unimarburg.diz.mtbpidtokafka.utils.StringCreatorFromArray;
@@ -43,7 +44,17 @@ class ApplicationTests {
 		String[] pids = {"1", "2", "3"};
 		String sqlStatment = "select * from table where ids in (";
 		String sql_string = StringCreatorFromArray.createInStringPidsArray(pids,sqlStatment);
-		assertEquals("select * from table where ids in (?, ?, ?);", sql_string);
+		assertEquals("select * from table where ids in (?,?,?);", sql_string);
+	}
+
+
+	@Test
+	public void createStringPidsForSqlTest() {
+
+		String pid = "\"1\"";
+		String sql_string = createStringPidsForSql(pid);
+		assertEquals("'1'",sql_string);
+
 	}
 
 }

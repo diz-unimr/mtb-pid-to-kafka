@@ -22,6 +22,7 @@ services:
     nexusdb-url: ${NEXUSDB_URL:jdbc:sqlserver://localhost:1433;databaseName=dnpm;encrypt=false}
     nexusdb-username: ${NEXUSDB_USERNAME:sa}
     nexusdb-password: ${NEXUSDB_PASSWORD:Strong@Password}
+    sql-statement: ${SQL_STATEMENT:sql_statement}
 
 
 management:

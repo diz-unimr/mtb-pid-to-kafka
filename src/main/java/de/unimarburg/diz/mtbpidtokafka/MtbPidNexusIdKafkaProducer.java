@@ -67,17 +67,16 @@ public class MtbPidNexusIdKafkaProducer {
                 log.info("Resultset size is null");
             return;
             }
-            log.info("Resultset size is " + resultSet.getMetaData().getColumnCount());
-
-                while (resultSet.next()) {
-                    MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
-                    String pid = resultSet.getString("pid");
-                    String oder_id = resultSet.getString("oder_id");
-                    mtbPidNexusOderId.setPid(pid);
-                    kafkaTemplate.sendDefault(oder_id, mtbPidNexusOderId);
-                    log.info("Message sent to kafka ");
+            while (resultSet.next()) {
+                MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
+                String pid = resultSet.getString("pid");
+                String oder_id = resultSet.getString("oder_id");
+                mtbPidNexusOderId.setPid(pid);
+                kafkaTemplate.sendDefault(oder_id, mtbPidNexusOderId);
+                log.info("Message sent to kafka ");
                 }
             }
+
         }
 }
 
