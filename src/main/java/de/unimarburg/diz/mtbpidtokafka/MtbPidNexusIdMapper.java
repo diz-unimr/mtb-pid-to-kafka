@@ -57,8 +57,8 @@ public class MtbPidNexusIdMapper {
             // Establishing a connection to the database
             Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
             Statement stmt = conn.createStatement();
-            String sql_stat = sqlStatement + createInStringPidsArrayOld(pids);
-            resultSet = stmt.executeQuery(sql_stat);
+            String query = sqlStatement + createInStringPidsArrayOld(pids);
+            resultSet = stmt.executeQuery(query);
             //resultSet = preparedStatement.executeQuery();
             return resultSet;
         } catch (SQLException | NullPointerException e) {
