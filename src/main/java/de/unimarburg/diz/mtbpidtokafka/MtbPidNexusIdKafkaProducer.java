@@ -43,7 +43,6 @@ public class MtbPidNexusIdKafkaProducer {
     private static final Logger log = LoggerFactory.getLogger(MtbPidNexusIdKafkaProducer.class);
     private final MtbPidExtractorClient mtbPidExtractorClient;
     private final KafkaTemplate<String, MtbPidNexusOderId> kafkaTemplate;
-
     private final MtbPidNexusIdMapper mtbPidNexusIdMapper;
     @Value("${spring.kafka.producer.topic}")
     private final String mtb = "mtb-pid-nexus-oder-id";
@@ -70,13 +69,14 @@ public class MtbPidNexusIdKafkaProducer {
             while (resultSet.next()) {
                 MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
                 String pid = resultSet.getString("pid");
-                String oder_id = resultSet.getString("oder_id");
+                String tumorId = resultSet.getString("tumorid");
+                String oderId = resultSet.getString("oder_id");
                 mtbPidNexusOderId.setPid(pid);
-                kafkaTemplate.sendDefault(oder_id, mtbPidNexusOderId);
+                mtbPidNexusOderId.setTumorId(tumorId);
+                kafkaTemplate.sendDefault(oderId, mtbPidNexusOderId);
                 log.info("Message sent to kafka ");
                 }
             }
-
         }
 }
 

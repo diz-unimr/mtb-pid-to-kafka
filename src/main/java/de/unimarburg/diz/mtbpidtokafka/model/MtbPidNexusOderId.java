@@ -33,4 +33,8 @@ public class MtbPidNexusOderId {
     @JsonSetter(nulls = Nulls.AS_EMPTY)
     private String pid;
 
+    @JsonProperty
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    private String tumorId;
+
 }
