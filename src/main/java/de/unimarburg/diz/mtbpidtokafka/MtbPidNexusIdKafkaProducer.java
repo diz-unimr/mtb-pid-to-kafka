@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 
 @Service
@@ -55,10 +56,27 @@ public class MtbPidNexusIdKafkaProducer {
         kafkaTemplate.setDefaultTopic(mtb);
     }
 
+    public String findTumorID(String[][] result, String value) {
+        if (result == null || result.length < 2) {
+            return null; // Return null if the input is invalid
+        }
+        String[] pids = result[0];
+        String[] tumorIds = result[1];
+        for (int i = 0; i < pids.length; i++) {
+            if (pids[i].equals(value)) {
+                return tumorIds[i];
+            }
+        }
+        return null;
+    }
+
     public void sendToKafka() throws SQLException {
-        String[] pids = mtbPidExtractorClient.mtbPidsExtractor();
-        if (pids.length == 0) {
-            log.info("No PIDs found");
+        String[][] result = mtbPidExtractorClient.mtbPidsExtractor();
+        String[] pids = result[0];
+        String[] tumorIds = result[1];
+
+        if (pids.length == 0 && tumorIds.length == 0) {
+            log.info("No PIDs und tumorIds are found in the result");
             return;
         }
         try (ResultSet resultSet = mtbPidNexusIdMapper.mapMtbPidtoOderId(pids)) {
@@ -69,11 +87,12 @@ public class MtbPidNexusIdKafkaProducer {
             while (resultSet.next()) {
                 MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
                 String pid = resultSet.getString("pid");
-                String tumorId = resultSet.getString("tumorid");
-                String oderId = resultSet.getString("oder_id");
+                String tumorId = findTumorID(result, pid);
+                String orderId = resultSet.getString("oder_id");
                 mtbPidNexusOderId.setPid(pid);
                 mtbPidNexusOderId.setTumorId(tumorId);
-                kafkaTemplate.sendDefault(oderId, mtbPidNexusOderId);
+                mtbPidNexusOderId.setOrderId(orderId);
+                kafkaTemplate.sendDefault(orderId, mtbPidNexusOderId);
                 log.info("Message sent to kafka ");
                 }
             }

@@ -30,11 +30,12 @@ import lombok.Data;
 public class MtbPidNexusOderId {
 
     @JsonProperty
-    @JsonSetter(nulls = Nulls.AS_EMPTY)
     private String pid;
 
     @JsonProperty
-    @JsonSetter(nulls = Nulls.AS_EMPTY)
     private String tumorId;
+
+    @JsonProperty
+    private String orderId;
 
 }

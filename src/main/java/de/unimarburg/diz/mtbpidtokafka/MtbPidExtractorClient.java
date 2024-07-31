@@ -40,6 +40,7 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.web.client.RestTemplate;
 
 import java.sql.Array;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -59,13 +60,12 @@ public class MtbPidExtractorClient {
         this.username = username;
         this.password = password;
     }
-    private static ResponseEntity<String> responseEntity;
 
     private final RetryTemplate retryTemplate = defaultTemplate();
 
-    public  String [] mtbPidsExtractor() {
+    public  String [][] mtbPidsExtractor() {
         log.debug("Starting");
-        String [] pids = new String[0];
+        String[][] result = new String[2][0];
         String authHeaderValue = "Basic " + java.util.Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -74,21 +74,25 @@ public class MtbPidExtractorClient {
         HttpEntity<String> entity = new HttpEntity<>(headers);
         // Create GET request to the API
         try {
-            responseEntity = retryTemplate.execute(ctx -> restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class));
+            ResponseEntity<String> responseEntity = retryTemplate.execute(ctx -> restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class));
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 log.debug("API request succeeded");
             // Parse the CSV response to extract IDs
                 String[] lines = Objects.requireNonNull(responseEntity.getBody()).split("\\r?\\n");
-                pids = new String[lines.length - 1];
+                String[] pids = new String[lines.length - 1];
+                String[] tumorIds = new String[lines.length - 1];
                 for (int i = 1; i < lines.length; i++) {
                     String[] columns = lines[i].split(",");
-                    pids[i - 1] = columns[0];
+                    pids[i-1] = columns[0];
+                    tumorIds[i-1] = columns.length > 1 ? columns[1] : "";
                 }
+                result[0] = pids;
+                result[1] = tumorIds;
             }
         } catch (RestClientException e){
-            log.error("API request unsuccessful due to restclientexception");
+            log.error("API request unsuccessful due to restclientexception", e);
         }
-    return pids;
+    return result;
     }
 
     public static RetryTemplate defaultTemplate(){
