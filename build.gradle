@@ -67,6 +67,8 @@ dependencies {
 	implementation 'io.micrometer:micrometer-core'
 
 	// mapper
+	// https://mvnrepository.com/artifact/com.opencsv/opencsv
+	implementation 'com.opencsv:opencsv:5.9'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
 	implementation 'com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11'

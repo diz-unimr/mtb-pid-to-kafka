@@ -22,6 +22,7 @@ MTB-ID-TO-KAFKA is distributed in the hope that it will be useful,
 
 package de.unimarburg.diz.mtbpidtokafka;
 
+import de.unimarburg.diz.mtbpidtokafka.model.MtbPatientInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,28 +35,32 @@ import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.web.client.RestTemplate;
 
-import java.sql.Array;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
+import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.List;
 
 @Component
-public class MtbPidExtractorClient {
-    private static final Logger log = LoggerFactory.getLogger(MtbPidExtractorClient.class);
+public class MtbPidInfoExtractorRestClient {
+    private static final Logger log = LoggerFactory.getLogger(MtbPidInfoExtractorRestClient.class);
 
     private final String apiUrl;
     private final String username;
     private final String password;
 
     @Autowired
-    public MtbPidExtractorClient(@Value("${services.mtbSender.get-url}") String apiUrl,
-                                 @Value("${services.mtbSender.mtb-username}") String username,
-                                 @Value("${services.mtbSender.mtb-password}") String password){
+    public MtbPidInfoExtractorRestClient(@Value("${services.mtbSender.get-url}") String apiUrl,
+                                         @Value("${services.mtbSender.mtb-username}") String username,
+                                         @Value("${services.mtbSender.mtb-password}") String password){
         this.apiUrl= apiUrl;
         this.username = username;
         this.password = password;
@@ -63,7 +68,7 @@ public class MtbPidExtractorClient {
 
     private final RetryTemplate retryTemplate = defaultTemplate();
 
-    public  String [][] mtbPidsExtractor() {
+    public List<MtbPatientInfo>  mtbPidInfoExtractor() {
         log.debug("Starting");
         String[][] result = new String[2][0];
         String authHeaderValue = "Basic " + java.util.Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
@@ -77,22 +82,19 @@ public class MtbPidExtractorClient {
             ResponseEntity<String> responseEntity = retryTemplate.execute(ctx -> restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class));
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 log.debug("API request succeeded");
-            // Parse the CSV response to extract IDs
-                String[] lines = Objects.requireNonNull(responseEntity.getBody()).split("\\r?\\n");
-                String[] pids = new String[lines.length - 1];
-                String[] tumorIds = new String[lines.length - 1];
-                for (int i = 1; i < lines.length; i++) {
-                    String[] columns = lines[i].split(",");
-                    pids[i-1] = columns[0];
-                    tumorIds[i-1] = columns.length > 1 ? columns[1] : "";
-                }
-                result[0] = pids;
-                result[1] = tumorIds;
+                System.out.println(responseEntity.getBody());
+                Reader reader = new InputStreamReader(new ByteArrayInputStream(Objects.requireNonNull(responseEntity.getBody()).getBytes()));
+                CsvToBean<MtbPatientInfo> csvToBean = new CsvToBeanBuilder<MtbPatientInfo>(reader)
+                        .withType(MtbPatientInfo.class)
+                        .withIgnoreLeadingWhiteSpace(true)
+                        .withSeparator(';') // Set the delimiter to semicolon
+                        .withQuoteChar('"').build();
+                return csvToBean.parse();
             }
         } catch (RestClientException e){
             log.error("API request unsuccessful due to restclientexception", e);
         }
-    return result;
+        return List.of();
     }
 
     public static RetryTemplate defaultTemplate(){

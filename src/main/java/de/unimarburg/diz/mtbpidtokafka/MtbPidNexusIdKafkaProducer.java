@@ -22,7 +22,10 @@ MTB-ID-TO-KAFKA is distributed in the hope that it will be useful,
 
 package de.unimarburg.diz.mtbpidtokafka;
 
-import de.unimarburg.diz.mtbpidtokafka.model.MtbPidNexusOderId;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import de.unimarburg.diz.mtbpidtokafka.model.MtbPatientInfo;
+import de.unimarburg.diz.mtbpidtokafka.utils.CustomDateFormatter;
+import de.unimarburg.diz.mtbpidtokafka.utils.CustomKafkaKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +35,8 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @Service
@@ -42,60 +44,27 @@ import java.util.Arrays;
 @EnableKafka
 public class MtbPidNexusIdKafkaProducer {
     private static final Logger log = LoggerFactory.getLogger(MtbPidNexusIdKafkaProducer.class);
-    private final MtbPidExtractorClient mtbPidExtractorClient;
-    private final KafkaTemplate<String, MtbPidNexusOderId> kafkaTemplate;
-    private final MtbPidNexusIdMapper mtbPidNexusIdMapper;
-    @Value("${spring.kafka.producer.topic}")
-    private final String mtb = "mtb-pid-nexus-oder-id";
+    private final MtbPidInfoExtractorRestClient mtbPidExtractorClient;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
+    private String topic;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
-    public MtbPidNexusIdKafkaProducer(MtbPidExtractorClient mtbPidExtractorClient, MtbPidNexusIdMapper mtbPidNexusIdMapper, KafkaTemplate<String, MtbPidNexusOderId> kafkaTemplate) {
+    public MtbPidNexusIdKafkaProducer(MtbPidInfoExtractorRestClient mtbPidExtractorClient, KafkaTemplate<String, String> kafkaTemplate, @Value("${spring.kafka.producer.topic}") String topic) {
         this.mtbPidExtractorClient = mtbPidExtractorClient;
-        this.mtbPidNexusIdMapper = mtbPidNexusIdMapper;
         this.kafkaTemplate = kafkaTemplate;
-        kafkaTemplate.setDefaultTopic(mtb);
+        kafkaTemplate.setDefaultTopic(topic);
     }
 
-    public String findTumorID(String[][] result, String value) {
-        if (result == null || result.length < 2) {
-            return null; // Return null if the input is invalid
-        }
-        String[] pids = result[0];
-        String[] tumorIds = result[1];
-        for (int i = 0; i < pids.length; i++) {
-            if (pids[i].equals(value)) {
-                return tumorIds[i];
-            }
-        }
-        return null;
-    }
-
-    public void sendToKafka() throws SQLException {
-        String[][] result = mtbPidExtractorClient.mtbPidsExtractor();
-        String[] pids = result[0];
-        String[] tumorIds = result[1];
-
-        if (pids.length == 0 && tumorIds.length == 0) {
-            log.info("No PIDs und tumorIds are found in the result");
-            return;
-        }
-        try (ResultSet resultSet = mtbPidNexusIdMapper.mapMtbPidtoOderId(pids)) {
-            if (resultSet == null) {
-                log.info("Resultset size is null");
-            return;
-            }
-            while (resultSet.next()) {
-                MtbPidNexusOderId mtbPidNexusOderId = new MtbPidNexusOderId();
-                String pid = resultSet.getString("pid");
-                String tumorId = findTumorID(result, pid);
-                String orderId = resultSet.getString("oder_id");
-                mtbPidNexusOderId.setPid(pid);
-                mtbPidNexusOderId.setTumorId(tumorId);
-                mtbPidNexusOderId.setOrderId(orderId);
-                kafkaTemplate.sendDefault(orderId, mtbPidNexusOderId);
-                log.info("Message sent to kafka ");
+    public void sendToKafka() throws  JsonProcessingException {
+        List<MtbPatientInfo> listMtbPidInfo = mtbPidExtractorClient.mtbPidInfoExtractor();
+        for (MtbPatientInfo mtbPatientInfo : listMtbPidInfo) {
+            String key = CustomKafkaKeyGenerator.generateCustomPatientIdentifier(mtbPatientInfo.getEinsendennummer(), mtbPatientInfo.getPatientenId());
+            mtbPatientInfo.setDiagnoseDatum(CustomDateFormatter.convertDateFormat(mtbPatientInfo.getDiagnoseDatum()));// Example: using field1 as the key
+            String message = objectMapper.writeValueAsString(mtbPatientInfo);
+            kafkaTemplate.sendDefault(key, message);
+            log.info("Message sent to kafka ");
                 }
             }
-        }
 }
 

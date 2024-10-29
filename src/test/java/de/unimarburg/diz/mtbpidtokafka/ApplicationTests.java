@@ -23,37 +23,33 @@ package de.unimarburg.diz.mtbpidtokafka;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import static de.unimarburg.diz.mtbpidtokafka.utils.StringCreatorFromArray.createStringPidsForSql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import de.unimarburg.diz.mtbpidtokafka.utils.StringCreatorFromArray;
-import de.unimarburg.diz.mtbpidtokafka.MtbPidNexusIdMapper;
-
+import de.unimarburg.diz.mtbpidtokafka.utils.CustomKafkaKeyGenerator;
+import de.unimarburg.diz.mtbpidtokafka.utils.CustomDateFormatter;
 
 
-@SpringBootTest
 class ApplicationTests {
 
 	@Test
 	void contextLoads() {
 	}
 
+
 	@Test
-	public void createInStringPidsArrayTest() {
-		String[] pids = {"1", "2", "3"};
-		String sqlStatment = "select * from table where ids in (";
-		String sql_string = StringCreatorFromArray.createInStringPidsArray(pids,sqlStatment);
-		assertEquals("select * from table where ids in (?,?,?);", sql_string);
+	public void customKafkaKeyGeneratorTest() {
+		String einsendenummer = "H/2024/012345";
+		String patientenId = "11111112";
+		String expected = "H12345-24_PID11111112";
+		String result = CustomKafkaKeyGenerator.generateCustomPatientIdentifier(einsendenummer, patientenId);
+		assertEquals(expected, result);
 	}
 
-
 	@Test
-	public void createStringPidsForSqlTest() {
-
-		String pid = "\"1\"";
-		String sql_string = createStringPidsForSql(pid);
-		assertEquals("'1'",sql_string);
+	public void customDateFormatterTest() {
+		String givendate = "07.06.2016";
+		String expecteddate = "2016-06-07";
+		String result = CustomDateFormatter.convertDateFormat(givendate);
+		assertEquals(expecteddate, result);
 
 	}
 
