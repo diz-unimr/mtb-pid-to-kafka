@@ -41,11 +41,11 @@ public class MtbPatientInfo {
     @CsvBindByName(column = "tumor_id")
     @JsonProperty("tumor_id")
     //@CsvBindByName(column = "Tumoridentifikator")
-    private int tumorId;
+    private String tumorId;
 
     @CsvBindByName(column = "erkrankung_sid")
     @JsonProperty("erkrankung_sid")
-    private int sid;
+    private String sid;
 
     @CsvBindByName (column = "erkrankung_guid" )
     @JsonProperty("erkrankung_guid")
@@ -53,7 +53,7 @@ public class MtbPatientInfo {
 
     @CsvBindByName (column = "erkrankung_revision")
     @JsonProperty("erkrankung_revision")
-    private int revision;
+    private String revision;
 
     @CsvBindByName (column = "einsendenummer")
     @JsonProperty("einsendennummer")
@@ -65,7 +65,7 @@ public class MtbPatientInfo {
 
     @CsvBindByName (column = "mig_referenz_tumor_id")
     @JsonProperty("migReferenzTumorId")
-    private int migReferenzTumorId ;
+    private String migReferenzTumorId ;
 
 }
 
