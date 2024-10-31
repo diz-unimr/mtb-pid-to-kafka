@@ -56,6 +56,7 @@ public class MtbPidNexusIdKafkaProducer {
         kafkaTemplate.setDefaultTopic(topic);
     }
 
+    // TODO: Need to seperate the data reading process in own method
     public void sendToKafka() throws  JsonProcessingException {
         List<MtbPatientInfo> listMtbPidInfo = mtbPidExtractorClient.mtbPidInfoExtractor();
         for (MtbPatientInfo mtbPatientInfo : listMtbPidInfo) {

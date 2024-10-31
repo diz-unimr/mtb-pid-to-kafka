@@ -23,6 +23,7 @@ package de.unimarburg.diz.mtbpidtokafka.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvCustomBindByName;
 import lombok.Data;
 
 @Data
@@ -57,6 +58,7 @@ public class MtbPatientInfo {
 
     @CsvBindByName (column = "einsendenummer")
     @JsonProperty("einsendennummer")
+    //@CsvCustomBindByName(converter = EmptyStringToNullConverter.class)
     private String einsendennummer;
 
     @CsvBindByName (column = "diagnosedatum")
