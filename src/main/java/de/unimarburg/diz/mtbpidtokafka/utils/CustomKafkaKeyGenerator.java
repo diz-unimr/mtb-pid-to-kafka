@@ -9,7 +9,7 @@ public class CustomKafkaKeyGenerator {
     public static String generateCustomPatientIdentifier(String einsendenummer, String patientenId) {
 
         if (StringUtils.hasText(einsendenummer) && StringUtils.hasText(patientenId)) {
-            log.info("Einsendenummer is not null");
+            log.debug("Einsendenummer is not null");
 
             // Split the einsendenummer by '/'
             if (einsendenummer.contains("/")) {
@@ -17,24 +17,27 @@ public class CustomKafkaKeyGenerator {
 
                 // Check if the prefix is "H"
                 String prefix = parts[0]; // Assuming the first part is the prefix
-                if (!prefix.equals("H")) {
-                    throw new IllegalArgumentException("The prefix must be 'H'. Provided: " + prefix);
+                if (!prefix.endsWith("H")) {
+                    log.error("The prefix must be 'H'. Provided: " + prefix);
                 }
 
-                // Extract the required parts
-                String firstPart = parts[parts.length - 1]; // Last part
 
-                String secondPart = parts.length > 1 ? parts[parts.length - 2] : "0";
-
-                // Convert to unsigned integers
-                int firstNumber = Integer.parseInt(firstPart);
+                String secondPart = parts[parts.length - 2];
                 // Extract the last two characters after the leading "0" from the second part
                 String secondNumber = secondPart.length() > 1 ? secondPart.substring(2) : "0";
 
+                // Split the last part
+                // Extract the required parts
+                String lastPart = parts[parts.length - 1]; // Last part
+                // Convert to unsigned integers
+                String [] lastParts = lastPart.split("\\.");
+                String lastPartStart = lastParts[0];
+                int firstNumber = Integer.parseInt(lastPartStart);
+
                 // Construct the custom patient identifier
-                return prefix + firstNumber + "-" + secondNumber + "_PID" + patientenId;
+                return "H" + firstNumber + "-" + secondNumber + "_PID" + patientenId;
             }
-            throw new IllegalArgumentException("The einsendennummer is not valid");
+            log.error("The einsendennummer is not valid");
         }
         return "no journal or pid number present";
     }

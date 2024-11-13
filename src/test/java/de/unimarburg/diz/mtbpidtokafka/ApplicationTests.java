@@ -37,7 +37,7 @@ class ApplicationTests {
 
 	@Test
 	public void customKafkaKeyGeneratorTest() {
-		String einsendenummer = "H/2024/012345";
+		String einsendenummer = "NXP_H/2024/012345";
 		String patientenId = "11111112";
 		String expected = "H12345-24_PID11111112";
 		String result = CustomKafkaKeyGenerator.generateCustomPatientIdentifier(einsendenummer, patientenId);
