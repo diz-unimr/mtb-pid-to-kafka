@@ -34,7 +34,7 @@ import java.sql.SQLException;
 @EnableScheduling
 @Component
 public class MtbPidToKafkaScheduler {
-    private static final Logger log = LoggerFactory.getLogger(MtbPidInfoExtractorRestClient.class);
+    private static final Logger log = LoggerFactory.getLogger(MtbPidToKafkaScheduler.class);
     private final MtbPidNexusIdKafkaProducer mtbPidNexusIdKafkaProducer;
 
     @Autowired
