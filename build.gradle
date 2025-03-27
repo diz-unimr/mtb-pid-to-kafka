@@ -70,7 +70,7 @@ dependencies {
 	implementation 'com.opencsv:opencsv:5.9'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-	implementation 'com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11'
+	implementation 'com.microsoft.sqlserver:mssql-jdbc:12.10.0.jre11'
 
 	// unit tests
 	testImplementation 'org.springframework.cloud:spring-cloud-stream'
