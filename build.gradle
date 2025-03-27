@@ -1,6 +1,6 @@
 plugins {
-	id "org.springframework.boot" version '3.2.3'
-	id "io.spring.dependency-management" version '1.1.4'
+	id "org.springframework.boot" version '3.4.4'
+    id "io.spring.dependency-management" version '1.1.7'
 	id 'java'
 	id 'jacoco'
 	id "io.freefair.lombok" version "6.6.3"
@@ -8,11 +8,10 @@ plugins {
 
 group = 'de.unimarburg.diz'
 version = '0.0.2-SNAPSHOT'
-
-//java {
-//	sourceCompatibility = JavaVersion.VERSION_21
-//	targetCompatibility = JavaVersion.VERSION_21
-//}
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
 
 repositories {
 	mavenCentral()
@@ -44,8 +43,8 @@ tasks.register('integrationTest', Test) {
 check.dependsOn integrationTest
 
 ext {
-	set('springCloudVersion', "2023.0.0")
-	set('testContainersVersion', '1.19.5')
+	set('springCloudVersion', "2023.0.5")
+	set('testContainersVersion', '1.20.6')
 }
 
 dependencies {
@@ -60,7 +59,7 @@ dependencies {
 	// spring boot
 	implementation "org.springframework.boot:spring-boot-starter-web"
 	implementation "org.springframework.boot:spring-boot-starter-actuator"
-	implementation 'org.yaml:snakeyaml:2.2'
+	//implementation 'org.yaml:snakeyaml:2.2'
 
 	// metrics
 	implementation 'io.micrometer:micrometer-registry-prometheus'
@@ -71,11 +70,11 @@ dependencies {
 	implementation 'com.opencsv:opencsv:5.9'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-	implementation 'com.microsoft.sqlserver:mssql-jdbc:12.6.1.jre11'
+	implementation 'com.microsoft.sqlserver:mssql-jdbc:12.10.0.jre11'
 
 	// unit tests
 	testImplementation 'org.springframework.cloud:spring-cloud-stream'
-	testImplementation 'org.apache.kafka:kafka-streams-test-utils:3.4.0'
+	testImplementation 'org.apache.kafka:kafka-streams-test-utils:3.9.0'
 
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
@@ -112,7 +111,7 @@ integrationTest {
 }
 
 jacoco {
-	toolVersion = "0.8.11"
+	toolVersion = "0.8.12"
 	reportsDirectory = layout.buildDirectory.dir('jacoco-reports')
 }
 
