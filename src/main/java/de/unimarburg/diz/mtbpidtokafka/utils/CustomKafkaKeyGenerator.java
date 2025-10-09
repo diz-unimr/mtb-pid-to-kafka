@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
+import java.util.regex.Pattern;
+
 public class CustomKafkaKeyGenerator {
     private static final Logger log = LoggerFactory.getLogger(CustomKafkaKeyGenerator.class);
     public static String generateCustomPatientIdentifier(String einsendenummer, String patientenId) {
@@ -11,31 +13,19 @@ public class CustomKafkaKeyGenerator {
         if (StringUtils.hasText(einsendenummer) && StringUtils.hasText(patientenId)) {
             log.debug("Einsendenummer is not null");
 
-            // Split the einsendenummer by '/'
-            if (einsendenummer.contains("/")) {
-                String[] parts = einsendenummer.split("/");
+            final var pattern = Pattern.compile("(?<prefix>[A-Z])/\\d{2}(?<year>\\d{2})/0*(?<number>\\d+)");
+            final var matcher = pattern.matcher(einsendenummer);
 
-                // Check if the prefix is "H"
-                String prefix = parts[0]; // Assuming the first part is the prefix
-                if (!prefix.endsWith("H")) {
-                    log.error("The prefix must be 'H'. Provided: " + prefix);
+            if (matcher.find()) {
+                final var prefix = matcher.group("prefix");
+                final var year = matcher.group("year");
+                final var number = matcher.group("number");
+
+                if (!prefix.equals("H")) {
+                    log.error(String.format("The prefix must be 'H'. Provided: %s", prefix));
                 }
-
-
-                String secondPart = parts[parts.length - 2];
-                // Extract the last two characters after the leading "0" from the second part
-                String secondNumber = secondPart.length() > 1 ? secondPart.substring(2) : "0";
-
-                // Split the last part
-                // Extract the required parts
-                String lastPart = parts[parts.length - 1]; // Last part
-                // Convert to unsigned integers
-                String [] lastParts = lastPart.split("\\.");
-                String lastPartStart = lastParts[0];
-                int firstNumber = Integer.parseInt(lastPartStart);
-
-                // Construct the custom patient identifier
-                return "H" + firstNumber + "-" + secondNumber + "_PID" + patientenId;
+                
+                return String.format("%s%s-%s_PID%s", "H", number, year, patientenId);
             }
             log.error("The einsendennummer is not valid");
         }
