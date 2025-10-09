@@ -22,6 +22,8 @@ MTB-ID-TO-KAFKA is distributed in the hope that it will be useful,
 
 package de.unimarburg.diz.mtbpidtokafka;
 
+import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
 import de.unimarburg.diz.mtbpidtokafka.model.MtbPatientInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,21 +35,18 @@ import org.springframework.retry.RetryContext;
 import org.springframework.retry.RetryListener;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
-import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.HashMap;
-import java.util.Objects;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.CsvToBeanBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class MtbPidInfoExtractorRestClient {
@@ -57,6 +56,9 @@ public class MtbPidInfoExtractorRestClient {
     private final String username;
     private final String password;
 
+    private final RestTemplate restTemplate;
+    private final RetryTemplate retryTemplate;
+
     @Autowired
     public MtbPidInfoExtractorRestClient(@Value("${services.mtbSender.get-url}") String apiUrl,
                                          @Value("${services.mtbSender.mtb-username}") String username,
@@ -64,18 +66,19 @@ public class MtbPidInfoExtractorRestClient {
         this.apiUrl= apiUrl;
         this.username = username;
         this.password = password;
-    }
 
-    private final RetryTemplate retryTemplate = defaultTemplate();
+        this.restTemplate = new RestTemplate();
+        this.retryTemplate = defaultTemplate();
+    }
 
     public List<MtbPatientInfo>  mtbPidInfoExtractor() {
         log.debug("Starting");
         String[][] result = new String[2][0];
-        String authHeaderValue = "Basic " + java.util.Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
-        RestTemplate restTemplate = new RestTemplate();
+
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Accept", MediaType.TEXT_PLAIN_VALUE);
-        headers.set("Authorization", authHeaderValue);
+        headers.set(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
+        headers.setBasicAuth(username, password);
+
         HttpEntity<String> entity = new HttpEntity<>(headers);
         // Create GET request to the API
         try {
