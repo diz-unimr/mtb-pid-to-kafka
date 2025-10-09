@@ -56,6 +56,9 @@ public class MtbPidInfoExtractorRestClient {
     private final String username;
     private final String password;
 
+    private final RestTemplate restTemplate;
+    private final RetryTemplate retryTemplate;
+
     @Autowired
     public MtbPidInfoExtractorRestClient(@Value("${services.mtbSender.get-url}") String apiUrl,
                                          @Value("${services.mtbSender.mtb-username}") String username,
@@ -63,9 +66,10 @@ public class MtbPidInfoExtractorRestClient {
         this.apiUrl= apiUrl;
         this.username = username;
         this.password = password;
-    }
 
-    private final RetryTemplate retryTemplate = defaultTemplate();
+        this.restTemplate = new RestTemplate();
+        this.retryTemplate = defaultTemplate();
+    }
 
     public List<MtbPatientInfo>  mtbPidInfoExtractor() {
         log.debug("Starting");
