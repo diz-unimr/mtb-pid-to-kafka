@@ -62,12 +62,14 @@ public class MtbPidInfoExtractorRestClient {
     @Autowired
     public MtbPidInfoExtractorRestClient(@Value("${services.mtbSender.get-url}") String apiUrl,
                                          @Value("${services.mtbSender.mtb-username}") String username,
-                                         @Value("${services.mtbSender.mtb-password}") String password){
+                                         @Value("${services.mtbSender.mtb-password}") String password,
+                                         final RestTemplate restTemplate
+    ){
         this.apiUrl= apiUrl;
         this.username = username;
         this.password = password;
 
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = restTemplate;
         this.retryTemplate = defaultTemplate();
     }
 
