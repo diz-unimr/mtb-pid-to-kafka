@@ -23,6 +23,7 @@ MTB-ID-TO-KAFKA is distributed in the hope that it will be useful,
 package de.unimarburg.diz.mtbpidtokafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.unimarburg.diz.mtbpidtokafka.model.MtbPatientInfo;
 import de.unimarburg.diz.mtbpidtokafka.utils.CustomDateFormatter;
 import de.unimarburg.diz.mtbpidtokafka.utils.CustomKafkaKeyGenerator;
@@ -36,7 +37,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 @Service
@@ -44,28 +44,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @EnableKafka
 public class MtbPidNexusIdKafkaProducer {
     private static final Logger log = LoggerFactory.getLogger(MtbPidNexusIdKafkaProducer.class);
-    private final MtbPidInfoExtractorRestClient mtbPidExtractorClient;
     private final KafkaTemplate<String, String> kafkaTemplate;
-
-    private String topic;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Autowired
-    public MtbPidNexusIdKafkaProducer(MtbPidInfoExtractorRestClient mtbPidExtractorClient, KafkaTemplate<String, String> kafkaTemplate, @Value("${spring.kafka.producer.topic}") String topic) {
-        this.mtbPidExtractorClient = mtbPidExtractorClient;
+    public MtbPidNexusIdKafkaProducer(KafkaTemplate<String, String> kafkaTemplate, @Value("${spring.kafka.producer.topic}") String topic) {
         this.kafkaTemplate = kafkaTemplate;
         kafkaTemplate.setDefaultTopic(topic);
     }
 
-    // TODO: Need to seperate the data reading process in own method
-    public void sendToKafka() throws  JsonProcessingException {
-        List<MtbPatientInfo> listMtbPidInfo = mtbPidExtractorClient.mtbPidInfoExtractor();
+    public void sendToKafka(final List<MtbPatientInfo> listMtbPidInfo) throws JsonProcessingException {
         for (MtbPatientInfo mtbPatientInfo : listMtbPidInfo) {
             String key = CustomKafkaKeyGenerator.generateCustomPatientIdentifier(mtbPatientInfo.getEinsendennummer(), mtbPatientInfo.getPatientenId());
             mtbPatientInfo.setDiagnoseDatum(CustomDateFormatter.convertDateFormat(mtbPatientInfo.getDiagnoseDatum()));// Example: using field1 as the key
             String message = objectMapper.writeValueAsString(mtbPatientInfo);
             kafkaTemplate.sendDefault(key, message);
             log.info("Message sent to kafka ");
-                }
-            }
+        }
+    }
 }
 

@@ -39,7 +39,7 @@ public class MtbPidinfoExtractorRestClientTest {
                         withSuccess(responseBody, MediaType.TEXT_PLAIN)
                 );
 
-        final var actual = this.out.mtbPidInfoExtractor();
+        final var actual = this.out.extractMtbPidInfo();
         assertThat(actual).hasSize(2);
 
         final var expectedMtbPatientInfos = List.of(
@@ -59,7 +59,7 @@ public class MtbPidinfoExtractorRestClientTest {
                         withResourceNotFound()
                 );
 
-        var actual = this.out.mtbPidInfoExtractor();
+        var actual = this.out.extractMtbPidInfo();
         assertThat(actual).isEmpty();
     }
 

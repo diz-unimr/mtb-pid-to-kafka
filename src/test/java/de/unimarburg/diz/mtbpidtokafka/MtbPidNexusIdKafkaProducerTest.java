@@ -17,22 +17,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class MtbPidNexusIdKafkaProducerTest {
+class MtbPidNexusIdKafkaProducerTest {
 
-    private MtbPidInfoExtractorRestClient mtbPidInfoExtractorRestClient;
     private KafkaTemplate<String, String> kafkaTemplate;
 
     private MtbPidNexusIdKafkaProducer out;
 
     @BeforeEach
-    public void setUp(
-            @Mock MtbPidInfoExtractorRestClient mtbPidInfoExtractorRestClient,
+    void setUp(
             @Mock KafkaTemplate<String, String> kafkaTemplate
     ) {
-        this.mtbPidInfoExtractorRestClient = mtbPidInfoExtractorRestClient;
         this.kafkaTemplate = kafkaTemplate;
-
-        this.out = new MtbPidNexusIdKafkaProducer(mtbPidInfoExtractorRestClient, kafkaTemplate, "testtopic");
+        this.out = new MtbPidNexusIdKafkaProducer(kafkaTemplate, "testtopic");
     }
 
     @Test
@@ -47,10 +43,7 @@ public class MtbPidNexusIdKafkaProducerTest {
                 generateMtbPatientKafkaString("2")
         );
 
-        when(mtbPidInfoExtractorRestClient.mtbPidInfoExtractor())
-                .thenReturn(testPatientInfos);
-
-        out.sendToKafka();
+        out.sendToKafka(testPatientInfos);
 
         var keyCaptor = ArgumentCaptor.forClass(String.class);
         var bodyCaptor = ArgumentCaptor.forClass(String.class);

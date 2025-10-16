@@ -60,12 +60,13 @@ public class MtbPidInfoExtractorRestClient {
     private final RetryTemplate retryTemplate;
 
     @Autowired
-    public MtbPidInfoExtractorRestClient(@Value("${services.mtbSender.get-url}") String apiUrl,
-                                         @Value("${services.mtbSender.mtb-username}") String username,
-                                         @Value("${services.mtbSender.mtb-password}") String password,
-                                         final RestTemplate restTemplate
-    ){
-        this.apiUrl= apiUrl;
+    public MtbPidInfoExtractorRestClient(
+            @Value("${services.mtbSender.get-url}") String apiUrl,
+            @Value("${services.mtbSender.mtb-username}") String username,
+            @Value("${services.mtbSender.mtb-password}") String password,
+            final RestTemplate restTemplate
+    ) {
+        this.apiUrl = apiUrl;
         this.username = username;
         this.password = password;
 
@@ -73,10 +74,8 @@ public class MtbPidInfoExtractorRestClient {
         this.retryTemplate = defaultTemplate();
     }
 
-    public List<MtbPatientInfo>  mtbPidInfoExtractor() {
-        log.debug("Starting");
-        String[][] result = new String[2][0];
-
+    public List<MtbPatientInfo> extractMtbPidInfo() {
+        log.debug("Starting extraction");
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.ACCEPT, MediaType.TEXT_PLAIN_VALUE);
         headers.setBasicAuth(username, password);
@@ -87,7 +86,6 @@ public class MtbPidInfoExtractorRestClient {
             ResponseEntity<String> responseEntity = retryTemplate.execute(ctx -> restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class));
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 log.debug("API request succeeded");
-                System.out.println(responseEntity.getBody());
                 Reader reader = new InputStreamReader(new ByteArrayInputStream(Objects.requireNonNull(responseEntity.getBody()).getBytes()));
                 CsvToBean<MtbPatientInfo> csvToBean = new CsvToBeanBuilder<MtbPatientInfo>(reader)
                         .withType(MtbPatientInfo.class)
@@ -96,20 +94,20 @@ public class MtbPidInfoExtractorRestClient {
                         .withQuoteChar('"').build();
                 return csvToBean.parse();
             }
-        } catch (RestClientException e){
+        } catch (RestClientException e) {
             log.error("API request unsuccessful due to restclientexception", e);
         }
         return List.of();
     }
 
-    public static RetryTemplate defaultTemplate(){
+    public static RetryTemplate defaultTemplate() {
         RetryTemplate retryTemplate = new RetryTemplate();
         ExponentialBackOffPolicy backOffPolicy = new ExponentialBackOffPolicy();
         backOffPolicy.setInitialInterval(5000);
         backOffPolicy.setMultiplier(1.25);
         retryTemplate.setBackOffPolicy(backOffPolicy);
         HashMap<Class<? extends Throwable>, Boolean> retryableExceptions = new HashMap<>();
-        retryableExceptions.put(RestClientException.class,true);
+        retryableExceptions.put(RestClientException.class, true);
         RetryPolicy retryPolicy = new SimpleRetryPolicy(3, retryableExceptions);
         retryTemplate.setRetryPolicy(retryPolicy);
         retryTemplate.registerListener(new RetryListener() {
