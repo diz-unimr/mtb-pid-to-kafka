@@ -22,6 +22,7 @@ MTB-ID-TO-KAFKA is distributed in the hope that it will be useful,
 package de.unimarburg.diz.mtbpidtokafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import de.unimarburg.diz.mtbpidtokafka.model.MtbPatientInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,21 +31,30 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
+import java.util.List;
 
 @EnableScheduling
 @Component
 public class MtbPidToKafkaScheduler {
+
     private static final Logger log = LoggerFactory.getLogger(MtbPidToKafkaScheduler.class);
+
     private final MtbPidNexusIdKafkaProducer mtbPidNexusIdKafkaProducer;
+    private final MtbPidInfoExtractorRestClient mtbPidExtractorClient;
 
     @Autowired
-    public MtbPidToKafkaScheduler(MtbPidNexusIdKafkaProducer mtbPidNexusIdKafkaProducer){
+    public MtbPidToKafkaScheduler(
+            final MtbPidNexusIdKafkaProducer mtbPidNexusIdKafkaProducer,
+            final MtbPidInfoExtractorRestClient mtbPidExtractorClient
+    ) {
         this.mtbPidNexusIdKafkaProducer = mtbPidNexusIdKafkaProducer;
+        this.mtbPidExtractorClient = mtbPidExtractorClient;
     }
 
     @Scheduled(fixedRateString = "${services.mtbSender.mtb-fetch-metrics}")// Repeate the process in defined seconds
     public void launchTaskMtbPidToKafka() throws SQLException, JsonProcessingException {
         log.info("mtb-pid-to-kafka process restarting ....");
-        mtbPidNexusIdKafkaProducer.sendToKafka();
+        List<MtbPatientInfo> listMtbPidInfo = mtbPidExtractorClient.extractMtbPidInfo();
+        mtbPidNexusIdKafkaProducer.sendToKafka(listMtbPidInfo);
     }
 }

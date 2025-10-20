@@ -23,7 +23,6 @@ package de.unimarburg.diz.mtbpidtokafka.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.opencsv.bean.CsvBindByName;
-import com.opencsv.bean.CsvCustomBindByName;
 import lombok.Data;
 
 @Data
