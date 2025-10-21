@@ -55,11 +55,15 @@ public class MtbPidNexusIdKafkaProducer {
 
     public void sendToKafka(final List<MtbPatientInfo> listMtbPidInfo) throws JsonProcessingException {
         for (MtbPatientInfo mtbPatientInfo : listMtbPidInfo) {
-            String key = CustomKafkaKeyGenerator.generateCustomPatientIdentifier(mtbPatientInfo.getEinsendennummer(), mtbPatientInfo.getPatientenId());
-            mtbPatientInfo.setDiagnoseDatum(CustomDateFormatter.convertDateFormat(mtbPatientInfo.getDiagnoseDatum()));// Example: using field1 as the key
-            String message = objectMapper.writeValueAsString(mtbPatientInfo);
-            kafkaTemplate.sendDefault(key, message);
-            log.info("Message sent to kafka ");
+            try {
+                String key = CustomKafkaKeyGenerator.generateCustomPatientIdentifier(mtbPatientInfo.getEinsendennummer(), mtbPatientInfo.getPatientenId());
+                mtbPatientInfo.setDiagnoseDatum(CustomDateFormatter.convertDateFormat(mtbPatientInfo.getDiagnoseDatum()));
+                String message = objectMapper.writeValueAsString(mtbPatientInfo);
+                kafkaTemplate.sendDefault(key, message);
+                log.info("Message sent to kafka ");
+            } catch (IllegalArgumentException e) {
+                log.error("Error while generating custom identifier", e);
+            }
         }
     }
 }

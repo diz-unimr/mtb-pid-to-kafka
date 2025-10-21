@@ -11,11 +11,17 @@ public class CustomKafkaKeyGenerator {
 
     private static final Logger log = LoggerFactory.getLogger(CustomKafkaKeyGenerator.class);
 
+    CustomKafkaKeyGenerator() {
+        // Intentional empty
+    }
+
     public static String generateCustomPatientIdentifier(String einsendenummer, String patientenId) {
 
-        if (StringUtils.hasText(einsendenummer) && StringUtils.hasText(patientenId)) {
-            log.debug("Einsendenummer is not null");
+        if (!StringUtils.hasText(patientenId)) {
+            throw new IllegalArgumentException("Invalid patientenId");
+        }
 
+        if (StringUtils.hasText(einsendenummer)) {
             final var pattern1 = Pattern.compile("(?<prefix>[A-Z])/\\d{2}(?<year>\\d{2})/0*(?<number>\\d+)");
             final var matcher1 = pattern1.matcher(einsendenummer);
 
@@ -27,9 +33,8 @@ public class CustomKafkaKeyGenerator {
             } else if (matcher2.find()) {
                 return keyFromMatcher(matcher2, patientenId);
             }
-            log.error("The einsendennummer is not valid");
         }
-        return "no journal or pid number present";
+        throw new IllegalArgumentException("Invalid einsendenummer");
     }
 
     private static String keyFromMatcher(Matcher matcher, String patientenId) {
@@ -38,9 +43,10 @@ public class CustomKafkaKeyGenerator {
         final var number = matcher.group("number");
 
         if (!prefix.equals("H")) {
-            log.error(String.format("The prefix must be 'H'. Provided: %s", prefix));
+            log.error("The prefix must be 'H'. Provided: {}", prefix);
         }
 
         return String.format("%s%s-%s_PID%s", "H", number, year, patientenId);
     }
+
 }
