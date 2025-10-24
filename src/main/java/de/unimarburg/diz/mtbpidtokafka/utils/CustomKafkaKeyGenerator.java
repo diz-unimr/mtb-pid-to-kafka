@@ -9,10 +9,6 @@ import java.util.regex.Pattern;
 
 public class CustomKafkaKeyGenerator {
 
-    CustomKafkaKeyGenerator() {
-        // Intentional empty
-    }
-
     private static final Logger log = LoggerFactory.getLogger(CustomKafkaKeyGenerator.class);
 
     CustomKafkaKeyGenerator() {
