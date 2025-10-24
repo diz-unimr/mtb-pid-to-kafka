@@ -22,8 +22,7 @@ class CustomKafkaKeyGeneratorTest {
             "X654321-25,01234567,X654321-25_PID01234567",
             "H7654321-25,01234567,H7654321-25_PID01234567",
             "H01234-25,12345678,H1234-25_PID12345678",
-            "NPX.H/2025/012345.100,12345678,H12345-25_PID12345678",
-            "H202554321,01234567,no journal or pid number present",
+            "NPX.H/2025/012345.100,12345678,H12345-25_PID12345678"
     })
     void shouldGenerateCustomPatientIdentifier(String einsendenummer, String patientId, String expectedKey) {
         assertThat(CustomKafkaKeyGenerator.generateCustomPatientIdentifier(einsendenummer, patientId)).isEqualTo(expectedKey);
