@@ -9,6 +9,10 @@ import java.util.regex.Pattern;
 
 public class CustomKafkaKeyGenerator {
 
+    CustomKafkaKeyGenerator() {
+        // Intentional empty
+    }
+
     private static final Logger log = LoggerFactory.getLogger(CustomKafkaKeyGenerator.class);
 
     public static String generateCustomPatientIdentifier(String einsendenummer, String patientenId) {
@@ -37,10 +41,6 @@ public class CustomKafkaKeyGenerator {
         final var year = matcher.group("year");
         final var number = matcher.group("number");
 
-        if (!prefix.equals("H")) {
-            log.error(String.format("The prefix must be 'H'. Provided: %s", prefix));
-        }
-
-        return String.format("%s%s-%s_PID%s", "H", number, year, patientenId);
+        return String.format("%s%s-%s_PID%s", prefix, number, year, patientenId);
     }
 }
