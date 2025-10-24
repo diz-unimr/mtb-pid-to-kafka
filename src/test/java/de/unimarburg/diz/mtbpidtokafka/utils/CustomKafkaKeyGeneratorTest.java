@@ -1,12 +1,16 @@
 package de.unimarburg.diz.mtbpidtokafka.utils;
 
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CustomKafkaKeyGeneratorTest {
-
 
     @ParameterizedTest
     @CsvSource({
@@ -23,6 +27,29 @@ class CustomKafkaKeyGeneratorTest {
     })
     void shouldGenerateCustomPatientIdentifier(String einsendenummer, String patientId, String expectedKey) {
         assertThat(CustomKafkaKeyGenerator.generateCustomPatientIdentifier(einsendenummer, patientId)).isEqualTo(expectedKey);
+    }
+
+    @ParameterizedTest
+    @MethodSource("illegalInputs")
+    void shouldThrowExceptionOnInvalidInput(String einsendenummer, String patientId, String expectedMessage) {
+        var ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> CustomKafkaKeyGenerator.generateCustomPatientIdentifier(einsendenummer, patientId)
+        );
+
+        assertThat(ex.getMessage()).isEqualTo(expectedMessage);
+    }
+
+    public static Stream<Arguments> illegalInputs() {
+        return Stream.of(
+                Arguments.of(null, "012345", "Invalid einsendenummer"),
+                Arguments.of("", "012345", "Invalid einsendenummer"),
+                Arguments.of("  ", "012345", "Invalid einsendenummer"),
+                Arguments.of("H/2025/12345", null, "Invalid patientenId"),
+                Arguments.of("H/2025/12345", "", "Invalid patientenId"),
+                Arguments.of("H/2025/12345", "   ", "Invalid patientenId"),
+                Arguments.of(null, null, "Invalid patientenId")
+        );
     }
 
 }
