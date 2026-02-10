@@ -41,9 +41,9 @@ class CustomKafkaKeyGeneratorTest {
 
     public static Stream<Arguments> illegalInputs() {
         return Stream.of(
-                Arguments.of(null, "012345", "Invalid einsendenummer"),
-                Arguments.of("", "012345", "Invalid einsendenummer"),
-                Arguments.of("  ", "012345", "Invalid einsendenummer"),
+                Arguments.of(null, "012345", "Invalid einsendenummer 'null'"),
+                Arguments.of("", "012345", "Invalid einsendenummer ''"),
+                Arguments.of("  ", "012345", "Invalid einsendenummer '  '"),
                 Arguments.of("H/2025/12345", null, "Invalid patientenId"),
                 Arguments.of("H/2025/12345", "", "Invalid patientenId"),
                 Arguments.of("H/2025/12345", "   ", "Invalid patientenId"),
