@@ -22,10 +22,10 @@ public class CustomKafkaKeyGenerator {
         }
 
         if (StringUtils.hasText(einsendenummer)) {
-            final var pattern1 = Pattern.compile("(?<prefix>[A-Z])/\\d{2}(?<year>\\d{2})/0*(?<number>\\d+)");
+            final var pattern1 = Pattern.compile("(?<prefix>[A-Z])/(\\d{2})?(?<year>\\d{2})/0*(?<number>\\d+)");
             final var matcher1 = pattern1.matcher(einsendenummer);
 
-            final var pattern2 = Pattern.compile("(?<prefix>[A-Z])0*(?<number>\\d+)-(?<year>\\d{2})");
+            final var pattern2 = Pattern.compile("(?<prefix>[A-Z])\\s*0*(?<number>\\d+)[\\-/](?<year>\\d{2})");
             final var matcher2 = pattern2.matcher(einsendenummer);
 
             if (matcher1.find()) {
