@@ -60,7 +60,7 @@ public class MtbPidNexusIdKafkaProducer {
                 mtbPatientInfo.setDiagnoseDatum(CustomDateFormatter.convertDateFormat(mtbPatientInfo.getDiagnoseDatum()));
                 String message = objectMapper.writeValueAsString(mtbPatientInfo);
                 kafkaTemplate.sendDefault(key, message);
-                log.info("Message sent to kafka ");
+                log.info("Message sent to kafka '%s'".formatted(key));
             } catch (IllegalArgumentException e) {
                 log.error("Error while generating custom identifier", e);
             }

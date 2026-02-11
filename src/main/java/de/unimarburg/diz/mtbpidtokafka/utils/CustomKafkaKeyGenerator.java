@@ -34,7 +34,7 @@ public class CustomKafkaKeyGenerator {
                 return keyFromMatcher(matcher2, patientenId);
             }
         }
-        throw new IllegalArgumentException("Invalid einsendenummer");
+        throw new IllegalArgumentException("Invalid einsendenummer '%s'".formatted(einsendenummer));
     }
 
     private static String keyFromMatcher(Matcher matcher, String patientenId) {
